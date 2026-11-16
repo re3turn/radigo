@@ -61,6 +61,11 @@ func download(link, output string) error {
 	}
 	defer resp.Body.Close()
 
+	// Do not save an error page as an aac file.
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to download %s: status %d", link, resp.StatusCode)
+	}
+
 	file, err := os.Create(output)
 	if err != nil {
 		return err
