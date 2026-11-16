@@ -2,6 +2,7 @@ package internal
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -21,15 +22,19 @@ func BulkDownload(list []string, output string) error {
 	var errFlag bool
 	var wg sync.WaitGroup
 
-	for _, v := range list {
+	for i, v := range list {
 		wg.Add(1)
-		go func(link string) {
+		// Name files by their index in the list, not by the url.
+		// The files are concatenated in name order, so this keeps
+		// the order of the list whatever the segment urls look like.
+		fileName := fmt.Sprintf("%09d.aac", i)
+		go func(link, fileName string) {
 			defer wg.Done()
 
 			var err error
-			for i := 0; i < maxAttempts; i++ {
+			for attempt := 0; attempt < maxAttempts; attempt++ {
 				sem <- struct{}{}
-				err = download(link, output)
+				err = download(link, filepath.Join(output, fileName))
 				<-sem
 				if err == nil {
 					break
@@ -39,7 +44,7 @@ func BulkDownload(list []string, output string) error {
 				log.Printf("Failed to download: %s", err)
 				errFlag = true
 			}
-		}(v)
+		}(v, fileName)
 	}
 	wg.Wait()
 
@@ -56,8 +61,7 @@ func download(link, output string) error {
 	}
 	defer resp.Body.Close()
 
-	_, fileName := filepath.Split(link)
-	file, err := os.Create(filepath.Join(output, fileName))
+	file, err := os.Create(output)
 	if err != nil {
 		return err
 	}
