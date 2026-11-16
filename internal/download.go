@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"sync/atomic"
 )
 
 const (
@@ -19,7 +20,7 @@ const (
 var sem = make(chan struct{}, maxConcurrents)
 
 func BulkDownload(list []string, output string) error {
-	var errFlag bool
+	var errFlag atomic.Bool
 	var wg sync.WaitGroup
 
 	for i, v := range list {
@@ -42,13 +43,13 @@ func BulkDownload(list []string, output string) error {
 			}
 			if err != nil {
 				log.Printf("Failed to download: %s", err)
-				errFlag = true
+				errFlag.Store(true)
 			}
 		}(v, fileName)
 	}
 	wg.Wait()
 
-	if errFlag {
+	if errFlag.Load() {
 		return errors.New("Lack of aac files")
 	}
 	return nil
