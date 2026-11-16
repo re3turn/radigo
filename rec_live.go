@@ -102,7 +102,7 @@ func (c *recLiveCommand) Run(args []string) int {
 	var streamURL string
 	for _, i := range items {
 		// Premium user
-		if areaID != "" && areaID != currentAreaID {
+		if isAreafree(areaID) {
 			if i.Areafree {
 				streamURL = i.PlaylistCreateURL
 				break

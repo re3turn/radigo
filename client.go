@@ -13,6 +13,13 @@ const (
 	envRadikoPassword = "RADIKO_PASSWORD"
 )
 
+// isAreafree reports whether the given areaID needs the area free.
+// When a currentAreaID is not equal to the given areaID,
+// it is necessary to use the area free as the premium member.
+func isAreafree(areaID string) bool {
+	return areaID != "" && areaID != currentAreaID
+}
+
 func getClient(ctx context.Context, areaID string) (*radiko.Client, error) {
 	var client *radiko.Client
 	var err error
@@ -22,9 +29,7 @@ func getClient(ctx context.Context, areaID string) (*radiko.Client, error) {
 		return nil, err
 	}
 
-	// When a currentAreaID is not equal to the given areaID,
-	// it is necessary to use the area free as the premium member.
-	if areaID != "" && areaID != currentAreaID {
+	if isAreafree(areaID) {
 		mail := os.Getenv(envRadikoMail)
 		password := os.Getenv(envRadikoPassword)
 

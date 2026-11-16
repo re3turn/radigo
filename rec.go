@@ -107,9 +107,7 @@ func (c *recCommand) Run(args []string) int {
 		table.Render()
 	}()
 
-	// Same condition as getClient: another area needs the area free.
-	areafree := areaID != "" && areaID != currentAreaID
-	chunklist, err := client.GetTimeshiftChunklist(ctx, stationID, startTime, areafree)
+	chunklist, err := client.GetTimeshiftChunklist(ctx, stationID, startTime, isAreafree(areaID))
 	if err != nil {
 		c.ui.Error(fmt.Sprintf(
 			"Failed to get chunklist: %s", err))
