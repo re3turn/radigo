@@ -10,14 +10,20 @@ import (
 	"path/filepath"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
 const (
-	maxAttempts    = 4
-	maxConcurrents = 64
+	maxAttempts     = 4
+	maxConcurrents  = 64
+	downloadTimeout = time.Minute
 )
 
 var sem = make(chan struct{}, maxConcurrents)
+
+// httpClient has a timeout so that a stalled segment does not
+// hold a slot of sem and block the whole download forever.
+var httpClient = &http.Client{Timeout: downloadTimeout}
 
 func BulkDownload(list []string, output string) error {
 	var errFlag atomic.Bool
@@ -56,7 +62,7 @@ func BulkDownload(list []string, output string) error {
 }
 
 func download(link, output string) error {
-	resp, err := http.Get(link)
+	resp, err := httpClient.Get(link)
 	if err != nil {
 		return err
 	}
