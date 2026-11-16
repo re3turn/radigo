@@ -11,7 +11,6 @@ import (
 	"github.com/briandowns/spinner"
 	"github.com/mitchellh/cli"
 	"github.com/olekukonko/tablewriter"
-	"github.com/yyoshiki41/go-radiko"
 	"github.com/yyoshiki41/radigo/internal"
 )
 
@@ -107,14 +106,9 @@ func (c *recCommand) Run(args []string) int {
 		table.Render()
 	}()
 
-	uri, err := client.TimeshiftPlaylistM3U8(ctx, stationID, startTime)
-	if err != nil {
-		c.ui.Error(fmt.Sprintf(
-			"Failed to get playlist.m3u8: %s", err))
-		return 1
-	}
-
-	chunklist, err := radiko.GetChunklistFromM3U8(uri)
+	// Same condition as getClient: another area needs the area free.
+	areafree := areaID != "" && areaID != currentAreaID
+	chunklist, err := client.GetTimeshiftChunklist(ctx, stationID, startTime, areafree)
 	if err != nil {
 		c.ui.Error(fmt.Sprintf(
 			"Failed to get chunklist: %s", err))
