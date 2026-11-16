@@ -97,6 +97,7 @@ func (c *recCommand) Run(args []string) int {
 			ctxCancel()
 			c.ui.Error(fmt.Sprintf(
 				"Failed to get the program: %s", err))
+			return
 		}
 
 		table := tablewriter.NewWriter(os.Stdout)
